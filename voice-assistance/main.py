@@ -20,13 +20,19 @@ import pygame
 import time
 from tts import *
 
-def offline_listen_and_recognize():
+def offline_listen_and_recognize(language="CN"):
     # 加载模型
     # English model
-    model_path_EN = "vosk-model-small-en-us-0.15"
+    if language == "EN":
+        model_path = "vosk-model-small-en-us-0.15"
     # Chinese model
-    model_path_CN = "vosk-model-small-cn-0.22"
-    model = vosk.Model(model_path_CN)
+    elif language == "CN":
+        model_path = "vosk-model-small-cn-0.22"
+    else:
+        print("Language not supported")
+        return
+
+    model = vosk.Model(model_path)
 
     # 初始化 PyAudio
     p = pyaudio.PyAudio()
@@ -51,43 +57,50 @@ def offline_listen_and_recognize():
         if rec.AcceptWaveform(data):
             result = json.loads(rec.Result())
             if result['text']:
-                if result['text'][:2] == "你好":
-                    print("识别结果:", result['text'][2:])
-                    feedback = llm_chain.run(result['text'])
-                    print(f"回答: {feedback}")
-                    tts_win(feedback)
+                if language == "CN":
+                    if result['text'][:2] == "你好":
+                        print("识别结果:", result['text'][2:])
+                        feedback = llm_chain.run(result['text'])
+                        print(f"回答: {feedback}")
+                        tts_win(feedback)
+                elif language == "EN":
+                    if result['text'][:2] == "hello":
+                        print("识别结果:", result['text'][5:])
+                        feedback = llm_chain.run(result['text'])
+                        print(f"回答: {feedback}")
+                        tts_win(feedback)
             else:
                 print("无法理解您说的话")
 
 
-# Online tts
-def listen_and_recognize():
-    # 创建一个Recognizer实例
-    recognizer = sr.Recognizer()
+# # Online tts
+# def listen_and_recognize():
+#     # 创建一个Recognizer实例
+#     recognizer = sr.Recognizer()
 
-    # 使用默认麦克风作为音频源
-    with sr.Microphone() as source:
-        print("请开始说话...")
+#     # 使用默认麦克风作为音频源
+#     with sr.Microphone() as source:
+#         print("请开始说话...")
 
-        # 调整环境噪音
-        recognizer.adjust_for_ambient_noise(source)
+#         # 调整环境噪音
+#         recognizer.adjust_for_ambient_noise(source)
 
-        # 监听音频输入
-        audio = recognizer.listen(source)
+#         # 监听音频输入
+#         audio = recognizer.listen(source)
 
-        try:
-            # 尝试将音频转换为文本
-            text = recognizer.recognize_google(audio, language='zh-CN')
-            #feedback = Tongyi().invoke(text)
-            feedback = llm_chain.run(text)
-            print(f"您说的是: {text}")
-            print(f"回答: {feedback}")
-            tts_win(feedback)
+#         try:
+#             # 尝试将音频转换为文本
+#             text = recognizer.recognize_google(audio, language='zh-CN')
+#             #feedback = Tongyi().invoke(text)
+#             feedback = llm_chain.run(text)
+#             print(f"您说的是: {text}")
+#             print(f"回答: {feedback}")
+#             tts_win(feedback)
 
-        except sr.UnknownValueError:
-            print("Google Speech Recognition无法理解您说的话")
-        except sr.RequestError as e:
-            print(f"请求错误; {e}")
+#         except sr.UnknownValueError:
+#             print("Google Speech Recognition无法理解您说的话")
+#         except sr.RequestError as e:
+#             print(f"请求错误; {e}")
 
 
 if __name__ == "__main__":
@@ -105,4 +118,4 @@ if __name__ == "__main__":
 
     llm_chain = LLMChain(prompt=prompt_template, llm=QwenLLM2(dashscope), memory=memory)
     while True:
-        offline_listen_and_recognize()
+        offline_listen_and_recognize(language="CN")
