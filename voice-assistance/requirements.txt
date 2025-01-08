@@ -1,0 +1,12 @@
+dashscope
+SpeechRecognition
+gTTS
+playsound
+pyaudio
+langchain-community
+pydub
+langchain
+langchain-core
+vosk
+pygame
+pyttsx3
